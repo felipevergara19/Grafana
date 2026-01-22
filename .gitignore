@@ -1,0 +1,19 @@
+# --- SECRETOS (NUNCA SUBIR) ---
+.env
+.env.local
+.env.production
+
+# --- DIRECTORIOS DE DATOS (NO SUBIR) ---
+# Si alguna vez mapeas volúmenes a carpetas locales, esto evita que subas GBs de datos
+grafana_data/
+caddy_data/
+caddy_config/
+prometheus_data/
+data/
+
+# --- SISTEMA OPERATIVO Y LOGS ---
+.DS_Store
+Thumbs.db
+*.log
+.vscode/
+.idea/

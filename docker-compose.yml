@@ -1,0 +1,100 @@
+services:
+  # --- 1. PROXY & HTTPS (CADDY) ---
+  caddy:
+    image: caddy:latest
+    container_name: caddy_proxy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - DOMAIN_NAME=${DOMAIN_NAME}
+      - SSL_EMAIL=${SSL_EMAIL}
+    volumes:
+      - ./config/Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - monitor_net
+    depends_on:
+      - grafana
+
+  # --- 2. DASHBOARDS (GRAFANA) ---
+  grafana:
+    image: grafana/grafana-oss:latest
+    container_name: grafana_central
+    restart: unless-stopped
+    user: "472"
+    environment:
+      # Plugins
+      - GF_INSTALL_PLUGINS=grafana-opensearch-datasource,yesoreyeram-infinity-datasource,mysql-datasource
+
+      # Configuración de Dominio
+      - GF_SERVER_ROOT_URL=https://${DOMAIN_NAME}
+      - GF_SERVER_DOMAIN=${DOMAIN_NAME}
+
+      # Credenciales Admin (Respaldo)
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASS}
+
+      # Google OAuth
+      - GF_AUTH_GOOGLE_ENABLED=true
+      - GF_AUTH_GOOGLE_ALLOW_SIGN_UP=true
+      - GF_AUTH_GOOGLE_ALLOWED_DOMAINS=${GOOGLE_ALLOWED_DOMAIN}
+      - GF_AUTH_GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GF_AUTH_GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./provisioning:/etc/grafana/provisioning
+    env_file:
+      - .env
+    networks:
+      - monitor_net
+
+  # --- 3. MONITOREO DE HARDWARE (PROMETHEUS) ---
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node_exporter
+    restart: unless-stopped
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    networks:
+      - monitor_net
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    restart: unless-stopped
+    volumes:
+      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    networks:
+      - monitor_net
+
+  # --- 4. MANTENIMIENTO AUTOMÁTICO (WATCHTOWER) ---
+  watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --interval 86400 --cleanup
+    networks:
+      - monitor_net
+
+volumes:
+  grafana_data:
+  caddy_data:
+  caddy_config:
+  prometheus_data:
+
+
+networks:
+  monitor_net:
+    driver: bridge

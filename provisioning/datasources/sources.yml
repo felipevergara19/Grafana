@@ -1,0 +1,38 @@
+apiVersion: 1
+
+datasources:
+  # --- 1. WAZUH ---
+  - name: Wazuh-Data
+    type: grafana-opensearch-datasource
+    access: proxy
+    url: ${WAZUH_URL}
+    basicAuth: true
+    basicAuthUser: ${WAZUH_USER}
+    basicAuthPassword: ${WAZUH_PASS}
+    jsonData:
+      timeField: "@timestamp"
+      tlsSkipVerify: true
+      version: "2.0.0"
+    database: "wazuh-alerts-*"
+
+  # --- 2. ACTION1 (Región: Global North America) ---
+  - name: Action1-API
+    type: yesoreyeram-infinity-datasource
+    access: proxy
+    jsonData:
+      auth_method: "apiKey"
+      api_key_type: "header"
+      api_key_key: "Authorization"
+      # URL confirmada para Global North America
+      global_queries: 
+        - name: "base_url"
+          url: "https://app.action1.com/api/v1/" 
+    secureJsonData:
+      # Grafana leerá la clave del archivo .env
+      api_key_value: "Bearer ${ACTION1_API_KEY}"
+
+  # --- 3. HARDWARE (Prometheus) ---
+  - name: Prometheus-Infra
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090

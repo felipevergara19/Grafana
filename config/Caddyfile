@@ -1,0 +1,7 @@
+{
+    email {$SSL_EMAIL}
+}
+
+{$DOMAIN_NAME} {
+    reverse_proxy grafana:3000
+}
