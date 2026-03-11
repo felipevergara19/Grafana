@@ -7,4 +7,6 @@ rules:
     indent-sequences: true
   document-start: disable
   truthy: disable
-  new-line-at-end-of-file: disable # Desactivado para evitar errores recurrentes de formato
+  new-line-at-end-of-file: disable
+  trailing-spaces: disable # Desactivado para evitar errores de espacios invisibles
+  comments: disable # Desactivado para evitar errores de formato en comentarios

@@ -46,14 +46,12 @@ jobs:
             echo "--- DEBUG INFO ---"
             echo "Usuario actual: $(whoami)"
             echo "Directorio inicial: $(pwd)"
-            echo "Contenido de la carpeta actual:"
-            ls -F
             
             # Intentar encontrar la carpeta del proyecto
             PROJECT_ROOT=$(find / -name Grafana -type d -maxdepth 3 2>/dev/null | head -n 1)
             
             if [ -z "$PROJECT_ROOT" ]; then
-              echo "Error: No se encontró ninguna carpeta llamada 'Grafana' en los niveles superiores."
+              echo "Error: No se encontró ninguna carpeta llamada 'Grafana'."
               exit 1
             fi
             
