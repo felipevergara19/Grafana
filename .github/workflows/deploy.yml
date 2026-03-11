@@ -43,7 +43,8 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd /home/${{ secrets.SERVER_USER }}/Grafana
+            cd /root/Grafana || { echo "Error: No se encontró la carpeta /root/Grafana"; exit 1; }
+
             git pull origin main
 
             # Recrear el archivo .env desde los secretos de GitHub
