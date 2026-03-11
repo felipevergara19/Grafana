@@ -43,33 +43,28 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            echo "--- DEBUG INFO ---"
+            echo "--- DIAGNÓSTICO DE ENTORNO ---"
             echo "Usuario: $(whoami)"
-            echo "Home: $HOME"
-            echo "PWD: $(pwd)"
-            echo "Listando carpeta actual:"
-            ls -la
-
-            # Intentar encontrar la carpeta Grafana sin importar mayúsculas
-            PROJECT_ROOT=$(find $HOME /root /home -maxdepth 2 -iname "Grafana" -type d 2>/dev/null | head -n 1)
-
-            if [ -z "$PROJECT_ROOT" ]; then
-              echo "!!! ERROR: No se encontró la carpeta Grafana en $HOME, /root o /home."
-              echo "Intentando encontrarla en todo el sistema (esto puede tardar)..."
-              PROJECT_ROOT=$(find / -maxdepth 4 -iname "Grafana" -type d 2>/dev/null | head -n 1)
+            echo "IP del Host: $(hostname -I)"
+            
+            # Definir la ruta del proyecto (usaremos la carpeta personal del usuario)
+            TARGET_DIR="$HOME/Grafana"
+            
+            if [ ! -d "$TARGET_DIR" ]; then
+              echo "!!! La carpeta $TARGET_DIR no existe. Intentando clonar el repositorio..."
+              cd $HOME
+              git clone https://github.com/${{ github.repository }}.git Grafana || { echo "Error al clonar"; exit 1; }
             fi
-
-            if [ -z "$PROJECT_ROOT" ]; then
-              echo "!!! ERROR CRITICAL: Carpeta Grafana no encontrada."
-              exit 1
-            fi
-
-            echo "Directorio encontrado: $PROJECT_ROOT"
-            cd "$PROJECT_ROOT"
-
+            
+            cd "$TARGET_DIR"
+            echo "Directorio actual: $(pwd)"
+            
+            # Forzar actualización
+            git fetch --all
+            git reset --hard origin/main
             git pull origin main
 
-            # Crear .env
+            # Recrear .env (NUNCA SUBIR ESTO)
             echo "DOMAIN_NAME=${{ secrets.DOMAIN_NAME }}" > .env
             echo "GRAFANA_ADMIN_USER=${{ secrets.GRAFANA_ADMIN_USER }}" >> .env
             echo "GRAFANA_ADMIN_PASS=${{ secrets.GRAFANA_ADMIN_PASS }}" >> .env
@@ -83,7 +78,7 @@ jobs:
             echo "ACTION1_API_KEY=${{ secrets.ACTION1_API_KEY }}" >> .env
             echo "SSL_EMAIL=${{ secrets.SSL_EMAIL }}" >> .env
 
-            # Usar docker compose (v2) o docker-compose (v1)
+            # Reiniciar Docker
             if command -v docker-compose >/dev/null 2>&1; then
               docker-compose up -d --force-recreate
             else
