@@ -17,7 +17,7 @@ jobs:
         uses: ibiqlik/action-yamllint@v3
         with:
           file_or_dir: "."
-          config_file: ".yamllint" # Opcional: crearemos uno básico o usará el default
+          config_file: ".yamllint"
 
       - name: Run Trivy vulnerability scanner (Repo)
         uses: aquasecurity/trivy-action@master
@@ -25,7 +25,7 @@ jobs:
           scan-type: 'fs'
           ignore-unfixed: true
           format: 'table'
-          exit-code: '1' # Falla el job si encuentra vulnerabilidades críticas
+          exit-code: '1'
           severity: 'CRITICAL,HIGH'
 
   deploy:
@@ -45,7 +45,7 @@ jobs:
           script: |
             cd /home/${{ secrets.SERVER_USER }}/Grafana
             git pull origin main
-            
+
             # Recrear el archivo .env desde los secretos de GitHub
             echo "DOMAIN_NAME=${{ secrets.DOMAIN_NAME }}" > .env
             echo "GRAFANA_ADMIN_USER=${{ secrets.GRAFANA_ADMIN_USER }}" >> .env
