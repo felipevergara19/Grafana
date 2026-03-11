@@ -17,3 +17,9 @@ Thumbs.db
 *.log
 .vscode/
 .idea/
+
+# --- TERRAFORM & INFRA ---
+.terraform/
+*.tfstate
+*.tfstate.backup
+.terraform.lock.hcl

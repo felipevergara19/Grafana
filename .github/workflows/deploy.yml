@@ -1,0 +1,64 @@
+name: Deploy to Linode
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  security_scan:
+    name: Security & Quality Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Yaml Lint
+        uses: ibiqlik/action-yamllint@v3
+        with:
+          file_or_dir: "."
+          config_file: ".yamllint" # Opcional: crearemos uno básico o usará el default
+
+      - name: Run Trivy vulnerability scanner (Repo)
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          ignore-unfixed: true
+          format: 'table'
+          exit-code: '1' # Falla el job si encuentra vulnerabilidades críticas
+          severity: 'CRITICAL,HIGH'
+
+  deploy:
+    name: Deploy to Server
+    needs: security_scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /home/${{ secrets.SERVER_USER }}/Grafana
+            git pull origin main
+            
+            # Recrear el archivo .env desde los secretos de GitHub
+            echo "DOMAIN_NAME=${{ secrets.DOMAIN_NAME }}" > .env
+            echo "GRAFANA_ADMIN_USER=${{ secrets.GRAFANA_ADMIN_USER }}" >> .env
+            echo "GRAFANA_ADMIN_PASS=${{ secrets.GRAFANA_ADMIN_PASS }}" >> .env
+            echo "GOOGLE_ALLOWED_DOMAIN=${{ secrets.GOOGLE_ALLOWED_DOMAIN }}" >> .env
+            echo "GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}" >> .env
+            echo "GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}" >> .env
+            echo "WAZUH_URL=${{ secrets.WAZUH_URL }}" >> .env
+            echo "WAZUH_USER=${{ secrets.WAZUH_USER }}" >> .env
+            echo "WAZUH_PASS=${{ secrets.WAZUH_PASS }}" >> .env
+            echo "WAZUH_MANAGER_URL=${{ secrets.WAZUH_MANAGER_URL }}" >> .env
+            echo "ACTION1_API_KEY=${{ secrets.ACTION1_API_KEY }}" >> .env
+            echo "SSL_EMAIL=${{ secrets.SSL_EMAIL }}" >> .env
+
+            # Reiniciar contenedores para aplicar cambios
+            docker-compose up -d --force-recreate
