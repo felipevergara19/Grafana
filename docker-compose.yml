@@ -27,7 +27,7 @@ services:
     user: "472"
     environment:
       # Plugins
-      - GF_INSTALL_PLUGINS=grafana-opensearch-datasource,yesoreyeram-infinity-datasource,mysql-datasource,wazuh-wazuh-app
+      - GF_INSTALL_PLUGINS=grafana-opensearch-datasource,yesoreyeram-infinity-datasource,wazuh-app
 
       # Configuración de Dominio
       - GF_SERVER_ROOT_URL=https://${DOMAIN_NAME}
