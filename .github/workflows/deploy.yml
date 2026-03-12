@@ -78,6 +78,10 @@ jobs:
             echo "ACTION1_API_KEY=${{ secrets.ACTION1_API_KEY }}" >> .env
             echo "SSL_EMAIL=${{ secrets.SSL_EMAIL }}" >> .env
 
+            # Inyectar secretos en el datasource de Grafana (reemplazar placeholders)
+            sed -i "s|WAZUH_PASS_SECRET|${{ secrets.WAZUH_PASS }}|g" provisioning/datasources/sources.yml
+            sed -i "s|ACTION1_API_KEY_SECRET|${{ secrets.ACTION1_API_KEY }}|g" provisioning/datasources/sources.yml
+
             # Reiniciar Docker
             if command -v docker-compose >/dev/null 2>&1; then
               docker-compose up -d --force-recreate

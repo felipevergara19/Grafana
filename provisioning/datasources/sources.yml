@@ -1,21 +1,22 @@
 apiVersion: 1
 
 datasources:
-  # --- 1. WAZUH ---
+  # --- 1. WAZUH INDEXER (Alertas via OpenSearch) ---
   - name: Wazuh-Data
     type: grafana-opensearch-datasource
     access: proxy
-    url: ${WAZUH_URL}
+    url: https://wazuh.colektia.space:9200
     basicAuth: true
-    basicAuthUser: ${WAZUH_USER}
-    basicAuthPassword: ${WAZUH_PASS}
+    basicAuthUser: Grafana_RO
+    secureJsonData:
+      basicAuthPassword: "WAZUH_PASS_SECRET"
     jsonData:
       timeField: "@timestamp"
       tlsSkipVerify: true
       version: "2.0.0"
-    database: "wazuh-alerts-*"
+      database: "wazuh-alerts-*"
 
-  # --- 2. ACTION1 (Región: Global North America) ---
+  # --- 2. ACTION1 API ---
   - name: Action1-API
     type: yesoreyeram-infinity-datasource
     access: proxy
@@ -23,13 +24,8 @@ datasources:
       auth_method: "apiKey"
       api_key_type: "header"
       api_key_key: "Authorization"
-      # URL confirmada para Global North America
-      global_queries:
-        - name: "base_url"
-          url: "https://app.action1.com/api/v1/"
     secureJsonData:
-      # Grafana leerá la clave del archivo .env
-      api_key_value: "Bearer ${ACTION1_API_KEY}"
+      api_key_value: "ACTION1_API_KEY_SECRET"
 
   # --- 3. HARDWARE (Prometheus) ---
   - name: Prometheus-Infra
