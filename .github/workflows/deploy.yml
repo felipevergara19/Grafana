@@ -41,7 +41,7 @@ jobs:
         with:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          password: ${{ secrets.SERVER_PASS }}
           script: |
             echo "--- DIAGNÓSTICO DE ENTORNO ---"
             echo "Usuario: $(whoami)"
