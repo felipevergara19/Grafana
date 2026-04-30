@@ -1,0 +1,12 @@
+# Ejemplo de variables para Terraform
+# Renombra este archivo a terraform.tfvars y configúralo con tus datos.
+
+linode_token = "TU_LINODE_TOKEN_AQUI"
+instance_id  = "TU_INSTANCE_ID_AQUI"
+
+# Ejemplo de IPs permitidas (usa ["0.0.0.0/0"] si deseas abrirlos a todo el mundo)
+allowed_http_ips  = ["0.0.0.0/0"]
+allowed_https_ips = ["0.0.0.0/0"]
+
+# Para mayor seguridad, restringe el SSH a tu IP pública: ["TU_IP_PÚBLICA/32"]
+allowed_ssh_ips   = ["0.0.0.0/0"]
